@@ -1,0 +1,27 @@
+rules/writing.md
+  s_dd883216df2c9f::t_4b3ed5940bd588 1-46
+rules/agent-conduct.md
+  s_dd883216df2c9f::t_41c7b0595e2ea4 1-15
+tests/test_writing_kit.py
+  s_dd883216df2c9f::t_33328597ef042e 1-50
+skills/writing/SKILL.md
+  s_dd883216df2c9f::t_a55ffa5107f26a 1-140
+tests/test_conformance.py
+  s_dd883216df2c9f::t_87739b81ced67e 89-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "2afcaf8b3d0ddf46aa5f671fe01f9e4342d92beb",
+  "prompts": {},
+  "sessions": {
+    "s_dd883216df2c9f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee4eb712fffeQEmR6wegEvi6qB",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>"
+    }
+  }
+}
