@@ -1,0 +1,31 @@
+# Node
+node_modules/
+npm-debug.log*
+.npm/
+
+# Tooling caches
+.cache/
+.biome-cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# OpenCode agent session/continuation state - machine cruft, not repo content
+.omo/
+
+# What `akit render` writes when this repository subscribes to itself. Generated
+# and disposable: the hand-written copies under skills/ and rules/ are the ones
+# anybody edits. akit maintains its own block here once it has rendered.
+/.agents/
