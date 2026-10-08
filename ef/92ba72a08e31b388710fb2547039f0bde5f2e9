@@ -1,0 +1,69 @@
+Makefile
+  s_dd883216df2c9f::t_1d5d10202ad7c0 1-51
+pytest.toml
+  s_dd883216df2c9f::t_a81e0085c08bc0 1-8
+tests/git_environment.py
+  s_dd883216df2c9f::t_ae7898d3a7e172 18
+.github/workflows/governance.yml
+  s_dd883216df2c9f::t_cb29695d6dca24 1-55
+.markdownlint-cli2.jsonc
+  s_dd883216df2c9f::t_6fb89bf7d221d8 10
+tests/test_agent_machinery.py
+  s_dd883216df2c9f::t_98e9df839c6cd0 1-70,72-105
+  s_dd883216df2c9f::t_49c7fafa3cc44b 71
+.pre-commit-config.yaml
+  s_dd883216df2c9f::t_6c4f9a5cabd211 1-203
+README.md
+  s_dd883216df2c9f::t_1493f1e947a408 1-39
+.scripts/run-tests.py
+  s_dd883216df2c9f::t_e3404ac1d65e68 78-81
+  s_dd883216df2c9f::t_ae2fbdb65cf492 32-74,82
+tests/test_conformance.py
+  s_dd883216df2c9f::t_7a9b189c6fd5bb 1-88
+tests/conftest.py
+  s_dd883216df2c9f::t_65240f0e4c5de2 1-69
+.github/workflows/tests.yml
+  s_dd883216df2c9f::t_a6252c6994ce07 1-151
+.scripts/check_kit_layout.py
+  s_dd883216df2c9f::t_26a64d65062bbc 165,190
+  s_dd883216df2c9f::t_4f97f2f6d9bd4d 62-63,65-67,72,75,78-91
+  s_dd883216df2c9f::t_b1fd2dfa5e9fca 1-61,64,68-71,73-74,76-77,92-102,104,106-143,146-154,156-157,159-164,166-168,170-174,176,178-183,185-189,191,193-195,204-234
+  s_dd883216df2c9f::t_9946d882958105 103,105,144-145,155,158,169,175,177,184,192,196-203
+.scripts/check_mailmap.py
+  s_dd883216df2c9f::t_d42b5c7a3cba74 14-29
+tests/kit_layout.py
+  s_dd883216df2c9f::t_127460330ba9b7 1-31
+.scripts/disposable-agent.py
+  s_dd883216df2c9f::t_ae7898d3a7e172 56
+  s_dd883216df2c9f::t_f19601ed6bc4b2 51-52
+LICENSE
+  s_dd883216df2c9f::t_6fb89bf7d221d8 3
+.scripts/check_no_symlinks.py
+  s_dd883216df2c9f::t_ae7898d3a7e172 14
+  s_dd883216df2c9f::t_df28feead1a5da 15-17
+CONTRIBUTING.md
+  s_dd883216df2c9f::t_b43cfa8de9fb72 1-173
+tests/disposable_agent.py
+  s_dd883216df2c9f::t_49c7fafa3cc44b 53-54
+tests/test_scripts.py
+  s_dd883216df2c9f::t_53b415724a19a7 1-15,17-21,23-141
+  s_dd883216df2c9f::t_f7ad22af10fba3 16,22,142-168
+.gitignore
+  s_dd883216df2c9f::t_ccf02f7a40d056 25-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "ef92ba72a08e31b388710fb2547039f0bde5f2e9",
+  "prompts": {},
+  "sessions": {
+    "s_dd883216df2c9f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_ee4eb712fffeQEmR6wegEvi6qB",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>"
+    }
+  }
+}
