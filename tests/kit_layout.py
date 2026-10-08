@@ -27,5 +27,6 @@ check_skills = _module.check_skills
 check_flat_kind = _module.check_flat_kind
 check_metadata = _module.check_metadata
 read_frontmatter = _module.read_frontmatter
+frontmatter_block = _module.frontmatter_block
 main = _module.main
 MAX_DEPTH = _module.MAX_DEPTH

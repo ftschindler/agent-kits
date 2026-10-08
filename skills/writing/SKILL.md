@@ -14,17 +14,18 @@ so check all three.
 | Concreteness | jargon-dense honest language | Is this the right word? |
 | Pace | correct language delivered too fast | How much arrives at once? |
 
-The reasoning behind each lives in one place, the public wiki, and is not
-repeated here. Read the page when a judgement call is close; the imperatives
-below are enough for the ordinary case.
+The imperatives below are enough for the ordinary case. When a judgement call
+is close, the reasoning and the worked examples for that axis sit beside this
+file:
+
+- [references/voice.md](references/voice.md)
+- [references/concreteness.md](references/concreteness.md)
+- [references/pace.md](references/pace.md)
 
 A harness may also carry a digest of the imperatives in its `AGENTS.md`, so
 that replies are styled without loading anything. This skill is that digest's
-expansion, and the wiki is the authority over both.
-
-- [Write in a calm, quantified, settled-fact voice, not a promotional one](https://ftschindler.github.io/knowledge/principles/write_in_a_calm_quantified_settled_fact_voice_not_a_promotional_one/)
-- [Name the concrete behaviour, not its abstract label](https://ftschindler.github.io/knowledge/principles/name_the_concrete_behaviour_not_its_abstract_label/)
-- [Hand the reader one idea at a time](https://ftschindler.github.io/knowledge/principles/hand_the_reader_one_idea_at_a_time/)
+expansion. Each reference page links to its live version in the public wiki,
+which is the authority over all three forms.
 
 ## When a repository disagrees, the repository wins
 
@@ -114,15 +115,14 @@ Avoid thematic breaks (`---`) in markdown. Headings already separate sections.
 
 ## Structure, for anything longer than a screen
 
-Two further principles govern shape rather than sentences. Read them when
-drafting a README, a runbook or a design document:
+Two further principles govern shape rather than sentences. The short form:
+lead each section with the runnable command and demote the why; and define a
+recurring concept in exactly one section, referencing it everywhere else.
 
-- [Structure docs as the reader's task path, lead with action, defer rationale](https://ftschindler.github.io/knowledge/principles/structure_docs_as_the_readers_task_path_lead_with_action_defer_rationale/)
-- [Give every cross-cutting concept one definitional home](https://ftschindler.github.io/knowledge/principles/give_every_cross_cutting_concept_one_definitional_home/)
+Read them in full when drafting a README, a runbook or a design document:
 
-The short form: lead each section with the runnable command and demote the
-why; and define a recurring concept in exactly one section, referencing it
-everywhere else.
+- [references/document-shape.md](references/document-shape.md)
+- [references/one-definitional-home.md](references/one-definitional-home.md)
 
 ## Revising a draft
 
