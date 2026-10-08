@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
-from kit_layout import REPO_ROOT, check_all, check_flat_kind, check_skills
+from kit_layout import REPO_ROOT, check_all, check_flat_kind, check_skills, frontmatter_block
 
 pytestmark = pytest.mark.conformance
 
@@ -86,3 +87,65 @@ def test_a_part_is_not_committed_where_a_render_would_land():
         check=True,
     )
     assert rendered.stdout.strip() == "", "`.agents/` is rendered output and must not be committed"
+
+
+def test_at_least_one_kit_is_shipped():
+    """An empty repository passes every check above by having nothing to check.
+
+    That is the state this repository was in for exactly one commit, and a suite
+    that stays green through it tells a contributor nothing. Now that a kit is
+    here, this is what notices if the directory holding it disappears.
+    """
+    kits = list((REPO_ROOT / "skills").glob("*/")) + list((REPO_ROOT / "rules").glob("*.md"))
+    assert kits, "no skills and no rules: this repository ships nothing"
+
+
+def test_a_rule_is_shorter_than_the_skill_it_digests():
+    """A rule is paid for on every turn; a skill is read when it is needed.
+
+    `writing` exists in both forms deliberately. The day the digest grows past
+    the skill, the reason for having two has gone, and nothing else would say so.
+    """
+    rule = (REPO_ROOT / "rules" / "writing.md").read_text(encoding="utf-8")
+    skill = (REPO_ROOT / "skills" / "writing" / "SKILL.md").read_text(encoding="utf-8")
+    assert len(rule) < len(skill), "the digest is longer than the skill it digests"
+
+
+def reference_files() -> list[Path]:
+    return sorted(REPO_ROOT.glob("skills/*/references/*.md"))
+
+
+def test_a_reference_carries_no_frontmatter():
+    """A reference is a digest the skill ships, not a wiki concept it copied.
+
+    The pages these are distilled from are Open Knowledge Format concepts, and
+    their frontmatter carries `type`, `tags`, `status` and a `generated` stamp
+    that would be false the moment the digest diverges. A reader of the skill
+    has no use for any of it, and the model reading the file pays for it.
+    """
+    for path in reference_files():
+        block, error = frontmatter_block(path)
+        assert error is None, f"{path.relative_to(REPO_ROOT)}: {error}"
+        assert block is None, f"{path.relative_to(REPO_ROOT)}: carries frontmatter the skill has no use for"
+
+
+def test_every_reference_is_reachable_from_its_skill():
+    """A reference nothing links to is one the model never opens.
+
+    The whole reason these ship beside the skill rather than as URLs is that a
+    link out to the web does not get followed. An unlinked file is the same
+    failure one step earlier.
+    """
+    for path in reference_files():
+        skill = path.parent.parent / "SKILL.md"
+        linked = f"references/{path.name}" in skill.read_text(encoding="utf-8")
+        assert linked, f"{path.relative_to(REPO_ROOT)} is not linked from {skill.relative_to(REPO_ROOT)}"
+
+
+def test_every_reference_names_the_live_page_it_was_distilled_from():
+    """The wiki is the authority, and a digest that cannot be traced back is a fork."""
+    for path in reference_files():
+        text = path.read_text(encoding="utf-8")
+        assert "https://ftschindler.github.io/knowledge/" in text, (
+            f"{path.relative_to(REPO_ROOT)} does not link the page it digests"
+        )

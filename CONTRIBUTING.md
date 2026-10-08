@@ -46,6 +46,14 @@ discovery walks. `skills/writing/` and `skills/prose/writing/` both resolve, so
 categories can arrive later without a migration; a fourth level cannot be found
 at all.
 
+**A reference ships beside the skill rather than as a URL.** A `SKILL.md` that
+links out to the web is a `SKILL.md` whose reasoning does not get read: in
+practice a model follows a relative path and does not open a link. So the long
+form lives in `references/`, as a plain digest with no frontmatter, and names the
+page it was distilled from so the authority stays traceable. Three conformance
+tests hold that shape: no frontmatter, linked from its own `SKILL.md`, and
+carrying the live URL.
+
 ### A rule
 
 ```text
