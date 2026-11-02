@@ -92,6 +92,16 @@ files that get copied - and a subscriber then needs `uv` and nothing else.
 passes them to the test run, so a new dependency needs no second declaration
 anywhere.
 
+### Node beside a skill
+
+A skill that needs a Node tool still asks the subscriber for `uv` and nothing
+else. Its Python script declares `nodejs-wheel-binaries` in the PEP 723 header,
+which brings `node` and `npm` from PyPI, and installs the tool with `npm ci`
+from a `package.json` and `package-lock.json` committed beside it. The install
+goes into a cache directory named after the lock file's hash, so a bumped lock
+installs afresh. [excalidraw](skills/excalidraw/scripts/excalidraw.py) is the
+worked example, and Dependabot watches its lock file.
+
 ## Tests
 
 Two offline layers, each one `make` target and one CI job, and a third that runs
