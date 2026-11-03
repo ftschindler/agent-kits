@@ -9,14 +9,15 @@ description: >-
 
 - **Create a fresh directory for throwaway work, once per task.** Put it under
   the temporary directory your harness names, or the system's when it names
-  none, and start the name with what the task is:
+  none. Replace `<harness>` with that directory and `<task>` with a few words
+  saying what the task is, such as `fix-login-redirect`:
 
   ```sh
-  mktemp -d "/tmp/opencode/agent-kits-pr11-XXXXXX"
+  mktemp -d "/tmp/<harness>/<task>-XXXXXX"
   ```
 
   ```powershell
-  (New-Item -ItemType Directory (Join-Path ([IO.Path]::GetTempPath()) "agent-kits-pr11-$([guid]::NewGuid())")).FullName
+  (New-Item -ItemType Directory (Join-Path ([IO.Path]::GetTempPath()) "<task>-$([guid]::NewGuid())")).FullName
   ```
 
 - **Use the path it printed, literally, in every later call.** Do not compute it

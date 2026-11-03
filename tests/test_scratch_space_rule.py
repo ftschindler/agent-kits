@@ -25,15 +25,19 @@ from kit_layout import REPO_ROOT
 pytestmark = pytest.mark.scripts
 
 RULE = REPO_ROOT / "rules" / "scratch-space.md"
-# The parent directory the POSIX example names, swapped for the test's own.
-EXAMPLE_PARENT = "/tmp/opencode"
-PREFIX = "agent-kits-pr11-"
+# The placeholders the rule tells an agent to replace, and what the test puts there.
+HARNESS_PARENT = "/tmp/<harness>"
+TASK = "<task>"
+PREFIX = "probe-task"
 
 
 def command(language: str) -> str:
+    """The rule's command block for `language`, with `<task>` filled in as an agent would."""
     blocks = re.findall(rf"```{language}\n(.*?)```", RULE.read_text(encoding="utf-8"), re.DOTALL)
     assert len(blocks) == 1, f"expected one ```{language} block in {RULE.name}, found {len(blocks)}"
-    return blocks[0].strip()
+    line = blocks[0].strip()
+    assert TASK in line, f"the {language} example no longer names {TASK}; update this test"
+    return line.replace(TASK, PREFIX)
 
 
 def run_twice(argv: list[str], tmp_path: Path) -> list[Path]:
@@ -58,8 +62,8 @@ def assert_fresh_and_distinct(made: list[Path], tmp_path: Path) -> None:
 @pytest.mark.skipif(sys.platform == "win32", reason="the POSIX command is for POSIX shells")
 def test_the_posix_command_makes_a_fresh_directory_each_time(tmp_path: Path) -> None:
     line = command("sh")
-    assert EXAMPLE_PARENT in line, f"the example no longer names {EXAMPLE_PARENT}; update this test"
-    made = run_twice(["sh", "-c", line.replace(EXAMPLE_PARENT, str(tmp_path))], tmp_path)
+    assert HARNESS_PARENT in line, f"the example no longer names {HARNESS_PARENT}; update this test"
+    made = run_twice(["sh", "-c", line.replace(HARNESS_PARENT, str(tmp_path))], tmp_path)
     assert_fresh_and_distinct(made, tmp_path)
 
 

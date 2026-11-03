@@ -2,13 +2,13 @@
   "files": [
     {
       "path": "rules/scratch-space.md",
-      "sha256": "d066c96a29dbc022a855b303e7b6bd993e6b332a145baa068bc592df7f50243b"
+      "sha256": "b6e3733b768c64b4da5af9a5760baaa44e9f29e2f40a0154f0b005690395cf3b"
     }
   ],
   "kit": "scratch-space",
   "outcome": "pass",
   "recorded": {
-    "at": "2026-11-03T11:53:06Z",
+    "at": "2026-11-03T13:15:25Z",
     "by": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>",
     "model": "github-copilot/claude-sonnet-5",
     "opencode_version": "1.19.4",
@@ -39,7 +39,7 @@
         }
       ],
       "prompt": "I want to clone a repository somewhere temporary to try something out. Which shell command creates the directory for it? Reply with the command only.",
-      "reply": "mktemp -d \"/tmp/opencode/agent-kits-pr11-XXXXXX\""
+      "reply": "```sh\nmktemp -d \"/tmp/evidence-scratch-space-nre6ulp4/clone-repo-XXXXXX\"\n```"
     }
   ],
   "schema_version": 1
