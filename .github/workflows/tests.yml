@@ -120,6 +120,14 @@ jobs:
           .scripts/*.py
           skills/*/scripts/*
 
+    - name: TEMP probe free models
+      shell: bash
+      run: |
+        npm i -g opencode-ai@1.18.25 >/dev/null
+        export HOME=$RUNNER_TEMP/h; mkdir -p $HOME/w; cd $HOME/w
+        for m in big-pickle hy3-free mimo-v2.5-free muse-spark-1.2-contributor-free nemotron-3-ultra-free nemotron-3.5-lightning-free; do
+          echo "=== $m"; timeout 60 opencode run --print-logs -m opencode/$m "Reply with the word hi" </dev/null 2>&1 | grep -E 'ERROR|^hi|^Hi' | cut -c1-300; echo "rc=$?"
+        done
     - name: Install the kits into a disposable agent and talk to it
       run: uv run .scripts/run-tests.py agent
 
