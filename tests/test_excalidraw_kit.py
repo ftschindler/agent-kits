@@ -1,9 +1,9 @@
 """The excalidraw kit: its guard, its engine, and an agent that draws with it.
 
 Three layers, as everywhere here. The `scripts` tests check what the wrapper
-refuses, without installing anything. The `agent` layer installs the pinned
-engine for real and drives it the way the skill tells an agent to, and then
-hands the skill to an agent and checks the file it leaves behind.
+accepts and refuses, without installing anything. The `agent` layer installs the
+pinned engine for real and drives it the way the skill tells an agent to, and
+then hands the skill to an agent and checks the file it leaves behind.
 
 What is asserted about a drawing is its structure - the labels exist and sit
 inside their shapes - never its looks. Looks are the model's judgement, and a
@@ -13,10 +13,11 @@ test that scored them would be measuring the model.
 from __future__ import annotations
 
 import importlib.util
+import itertools
 import json
 import os
-import socket
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -48,65 +49,74 @@ def labels(scene: dict) -> dict[str, str]:
     "args",
     [
         ["share"],
-        ["install-skill", "--dir", "somewhere"],
-        ["describe", "--url", "http://example.com"],
-        ["describe", "--url=http://example.com"],
-        ["export", "--out", "note.excalidraw.md"],
-        ["export", "--out=NOTE.EXCALIDRAW.MD"],
-        ["export", "--format", "obsidian", "--out", "a.excalidraw"],
-        ["export", "--format=obsidian"],
+        ["d.excalidraw", "share"],
+        ["d.excalidraw", "install-skill"],
+        ["d.excalidraw", "export", "--out", "x.excalidraw"],
+        ["d.excalidraw", "import", "other.excalidraw"],
+        ["d.excalidraw", "clear", "--yes"],
+        ["d.excalidraw", "mermaid"],
+        ["d.excalidraw", "start"],
+        ["note.excalidraw.md", "add"],
+        ["diagram.json", "describe"],
+        ["d.excalidraw", "describe", "--url", "http://example.com"],
+        ["d.excalidraw", "describe", "--url=http://example.com"],
+        ["render"],
+        ["render", "note.excalidraw.md"],
+        ["d.excalidraw"],
     ],
 )
-def test_the_wrapper_refuses_what_an_agent_must_not_do_unasked(args: list[str]) -> None:
+def test_the_wrapper_refuses_anything_outside_its_contract(args: list[str]) -> None:
     with pytest.raises(excalidraw.RefusedError):
-        excalidraw.check_arguments(args)
+        excalidraw.parse(args)
 
 
 @pytest.mark.scripts
 @pytest.mark.parametrize(
-    "args",
+    ("args", "mode", "command"),
     [
-        [],
-        ["help"],
-        ["add"],
-        ["export", "--out", "docs/page_diagram.excalidraw"],
-        ["render", "page.excalidraw", "--out", "check.png"],
-        ["update", "a", "--set", '{"text": "export --out x.md"}'],
+        ([], "help", None),
+        (["help", "add"], "help", None),
+        (["d.excalidraw", "add"], "scene", "add"),
+        (["D.EXCALIDRAW", "describe"], "scene", "describe"),
+        (["sub/d.excalidraw", "update", "a", "--set", '{"text": "share x.md"}'], "scene", "update"),
+        (["d.excalidraw", "screenshot", "--out", "check.png"], "scene", "screenshot"),
+        (["render", "d.excalidraw", "--out", "check.png"], "render", None),
     ],
 )
-def test_the_wrapper_passes_ordinary_commands(args: list[str]) -> None:
-    excalidraw.check_arguments(args)
+def test_the_wrapper_accepts_its_contract(args: list[str], mode: str, command: str | None) -> None:
+    parsed_mode, _, rest = excalidraw.parse(args)
+    assert parsed_mode == mode
+    if command is not None:
+        assert rest[0] == command
 
 
 @pytest.mark.scripts
 def test_a_refusal_exits_before_anything_is_installed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
-    assert excalidraw.main(["share"]) == 2
+    assert excalidraw.main(["d.excalidraw", "share"]) == 2
     assert not any(tmp_path.iterdir())
 
 
 @pytest.mark.scripts
-def test_the_canvas_is_pinned_to_loopback_whatever_the_environment_says() -> None:
+def test_the_canvas_is_private_and_on_loopback_whatever_the_environment_says(tmp_path: Path) -> None:
     hostile = {"EXPRESS_SERVER_URL": "http://example.com:80", "HOST": "0.0.0.0", "PORT": "80"}
-    environ = excalidraw.engine_environment(hostile)
-    assert environ["EXPRESS_SERVER_URL"] == "http://127.0.0.1:3000"
-    assert environ["HOST"] == "127.0.0.1"
-    assert environ["PORT"] == "3000"
-
-
-@pytest.mark.scripts
-def test_the_port_is_chosen_with_excalidraw_port() -> None:
-    environ = excalidraw.engine_environment({"EXCALIDRAW_PORT": "4123"})
+    environ = excalidraw.engine_environment(hostile, 4123, tmp_path)
     assert environ["EXPRESS_SERVER_URL"] == "http://127.0.0.1:4123"
+    assert environ["HOST"] == "127.0.0.1"
     assert environ["PORT"] == "4123"
+    assert environ["EXCALIDRAW_EXPORT_DIR"] == str(tmp_path)
 
 
 @pytest.mark.scripts
-@pytest.mark.parametrize("value", ["http", "0", "70000", "-1"])
-def test_a_port_that_is_not_one_is_refused(value: str) -> None:
-    with pytest.raises(excalidraw.RefusedError):
-        excalidraw.engine_environment({"EXCALIDRAW_PORT": value})
+def test_a_screenshot_is_made_in_the_sandbox_and_copied_where_asked(tmp_path: Path) -> None:
+    wanted = tmp_path / "check.png"
+    for args in (["screenshot", "--out", str(wanted)], ["screenshot", f"--out={wanted}"]):
+        rewritten, image = excalidraw.redirect_image(args)
+        assert str(wanted) not in " ".join(rewritten)
+        assert image == ("image.png", wanted.resolve())
+    assert excalidraw.redirect_image(["screenshot"]) == (["screenshot"], None)
+    assert excalidraw.redirect_image(["add"]) == (["add"], None)
 
 
 @pytest.mark.scripts
@@ -131,12 +141,6 @@ def test_the_engine_is_pinned_exactly() -> None:
 # ---- the engine, driven as the skill says ------------------------------------
 
 
-def free_port() -> int:
-    with socket.socket() as probe:
-        probe.bind(("127.0.0.1", 0))
-        return probe.getsockname()[1]
-
-
 @pytest.fixture
 def engine(tmp_path: Path):
     """Run the script as an agent would, with its cache and state kept in `tmp_path`."""
@@ -145,7 +149,6 @@ def engine(tmp_path: Path):
         "XDG_CACHE_HOME": str(tmp_path / "cache"),
         "XDG_STATE_HOME": str(tmp_path / "state"),
         "LOCALAPPDATA": str(tmp_path / "local"),
-        "EXCALIDRAW_PORT": str(free_port()),
     }
     work = tmp_path / "work"
     work.mkdir()
@@ -164,50 +167,76 @@ def engine(tmp_path: Path):
         )
 
     run.work = work  # type: ignore[attr-defined]
-    yield run
-    run("stop")
+    return run
 
 
-TWO_BOXES = json.dumps(
-    [
-        {"id": "bundle", "type": "rectangle", "x": 0, "y": 0, "width": 180, "height": 60, "text": "Bundle"},
-        {"id": "diagram", "type": "rectangle", "x": 300, "y": 0, "width": 180, "height": 60, "text": "Diagram"},
-        {"type": "arrow", "x": 0, "y": 0, "startElementId": "bundle", "endElementId": "diagram"},
+def boxes(*names: str) -> str:
+    shapes = [
+        {"id": name.lower(), "type": "rectangle", "x": 300 * i, "y": 0, "width": 180, "height": 60, "text": name}
+        for i, name in enumerate(names)
     ]
-)
+    arrows = [
+        {"type": "arrow", "x": 0, "y": 0, "startElementId": a["id"], "endElementId": b["id"]}
+        for a, b in itertools.pairwise(shapes)
+    ]
+    return json.dumps(shapes + arrows)
 
 
 @pytest.mark.agent
-def test_the_engine_draws_exports_and_renders_a_diagram(engine) -> None:
-    """The workflow in SKILL.md, step by step, against the pinned engine."""
-    for step in (("clear", "--yes"), ("add",)):
-        result = engine(*step, stdin=TWO_BOXES if step == ("add",) else None)
-        assert result.returncode == 0, f"{step}: {result.stderr}"
+def test_the_file_is_the_drawing_from_one_call_to_the_next(engine) -> None:
+    """The workflow in SKILL.md, call by call, against the pinned engine."""
+    added = engine("page_diagram.excalidraw", "add", stdin=boxes("Bundle", "Diagram"))
+    assert added.returncode == 0, added.stderr
+    target = engine.work / "page_diagram.excalidraw"
+    assert sorted(labels(json.loads(target.read_text(encoding="utf-8"))).values()) == ["Bundle", "Diagram"]
 
-    described = engine("describe")
+    described = engine("page_diagram.excalidraw", "describe")
     assert described.returncode == 0, described.stderr
     assert "Bundle" in described.stdout and "Diagram" in described.stdout
 
-    shot = engine("screenshot")
-    assert shot.returncode == 0, shot.stderr
-    assert Path(json.loads(shot.stdout)["file"]).is_file()
-
-    exported = engine("export", "--out", "page_diagram.excalidraw")
-    assert exported.returncode == 0, exported.stderr
-    target = engine.work / "page_diagram.excalidraw"
+    updated = engine("page_diagram.excalidraw", "update", "bundle", "--set", '{"width": 260}')
+    assert updated.returncode == 0, updated.stderr
     scene = json.loads(target.read_text(encoding="utf-8"))
-    assert scene["type"] == "excalidraw"
-    assert sorted(labels(scene).values()) == ["Bundle", "Diagram"]
+    assert next(e for e in scene["elements"] if e["id"] == "bundle")["width"] == 260
 
-    assert engine("stop").returncode == 0
-    rendered = engine("render", "page_diagram.excalidraw", "--out", "check.png")
-    assert rendered.returncode == 0, rendered.stderr
+    shot = engine("page_diagram.excalidraw", "screenshot", "--out", "check.png")
+    assert shot.returncode == 0, shot.stderr
     assert (engine.work / "check.png").stat().st_size > 0
+
+    rendered = engine("render", "page_diagram.excalidraw", "--out", "offline.png")
+    assert rendered.returncode == 0, rendered.stderr
+    assert (engine.work / "offline.png").stat().st_size > 0
+
+    assert sorted(p.name for p in engine.work.iterdir()) == ["check.png", "offline.png", "page_diagram.excalidraw"]
+
+
+@pytest.mark.agent
+def test_a_failed_command_leaves_the_file_untouched(engine) -> None:
+    assert engine("kept.excalidraw", "add", stdin=boxes("Kept")).returncode == 0
+    before = (engine.work / "kept.excalidraw").read_bytes()
+    assert engine("kept.excalidraw", "update", "no-such-id", "--set", '{"width": 1}').returncode != 0
+    assert (engine.work / "kept.excalidraw").read_bytes() == before
+
+
+@pytest.mark.agent
+def test_two_files_drawn_at_once_stay_apart(engine) -> None:
+    """Every call has its own canvas, so concurrent sessions cannot mix their drawings."""
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(
+            pool.map(
+                lambda name: engine(f"{name.lower()}.excalidraw", "add", stdin=boxes(name)),
+                ["Left", "Right"],
+            )
+        )
+    assert all(result.returncode == 0 for result in results), [r.stderr for r in results]
+    for name in ("Left", "Right"):
+        scene = json.loads((engine.work / f"{name.lower()}.excalidraw").read_text(encoding="utf-8"))
+        assert list(labels(scene).values()) == [name]
 
 
 @pytest.mark.agent
 def test_the_engine_refuses_to_share(engine) -> None:
-    result = engine("share")
+    result = engine("page.excalidraw", "share")
     assert result.returncode == 2
     assert "refused" in result.stderr
 
@@ -218,27 +247,11 @@ def test_the_engine_refuses_to_share(engine) -> None:
 @pytest.mark.agent
 def test_an_agent_draws_a_diagram_into_a_file(kit_agent: DisposableAgent) -> None:
     """Asked for a sketch, an agent with the skill leaves a real `.excalidraw` file behind."""
-    try:
-        result = kit_agent.run(
-            "Draw a small Excalidraw diagram with three boxes labelled Plan, Draw and Check, "
-            "connected by arrows in that order, and save it as process.excalidraw in the "
-            "current directory. Reply with the file name only."
-        )
-    finally:
-        subprocess.run(
-            [
-                "uv",
-                "run",
-                "--script",
-                str(kit_agent.agents_skills / "excalidraw" / "scripts" / "excalidraw.py"),
-                "stop",
-            ],
-            env=kit_agent.env,
-            cwd=kit_agent.work,
-            capture_output=True,
-            timeout=300,
-            check=False,
-        )
+    result = kit_agent.run(
+        "Draw a small Excalidraw diagram with three boxes labelled Plan, Draw and Check, "
+        "connected by arrows in that order, and save it as process.excalidraw in the "
+        "current directory. Reply with the file name only."
+    )
 
     assert result.returncode == 0, f"opencode exited {result.returncode}\n{result.stderr}"
     drawn = kit_agent.work / "process.excalidraw"
@@ -253,4 +266,3 @@ def test_an_agent_draws_a_diagram_into_a_file(kit_agent: DisposableAgent) -> Non
     }
     assert {"plan", "draw", "check"} <= found, f"labels in the file: {sorted(found)}"
     assert any(e.get("type") == "arrow" and not e.get("isDeleted") for e in scene["elements"])
-    assert not list(kit_agent.work.glob("*.excalidraw.md")), "the Obsidian format was written"

@@ -5,20 +5,19 @@ description: Draw an Excalidraw diagram and save it as a `.excalidraw` file. Use
 
 # Drawing Excalidraw diagrams
 
-You draw on a local canvas through one script, look at what you drew, fix it,
-and export the result as a plain `.excalidraw` file. The file is the deliverable;
-everything else is scaffolding.
+You build a diagram one command at a time, look at it, fix it, and end with a
+plain `.excalidraw` file that opens in Excalidraw, VS Code or Obsidian.
 
-## Where the file goes is the repository's call
+## Where the file goes
 
-Before drawing into someone's repository, check its `AGENTS.md`,
-`CONTRIBUTING.md` or an `editing_conventions.md` for where diagrams live, how
-they are named and how a page embeds one. Follow that. Where nothing is said,
-put the diagram beside the page it illustrates, name it after that page, and
-embed it with a Markdown image: `![What it shows](page_diagram.excalidraw)`.
+Where the user says. Otherwise in the current directory, named for what it
+shows: `release_flow.excalidraw`, not `diagram.excalidraw`.
 
-Commit the `.excalidraw` file and nothing else. Screenshots are for you to check
-your work, not for the repository.
+When the file is going into a directory that documents its own conventions for
+diagrams - an `AGENTS.md`, `CONTRIBUTING.md` or `editing_conventions.md` that
+says where they live and how they are named - follow those.
+
+Screenshots are for checking your work. Do not leave them beside the diagram.
 
 ## The script
 
@@ -31,24 +30,28 @@ uv run --script <this skill's directory>/scripts/excalidraw.py
 
 The first run installs the engine and takes a minute or so. That is not a hang.
 
-`excalidraw help` lists every command and `excalidraw help <command>` explains
-one. Results come back as JSON on stdout, except `describe`, which is text.
+Each call names the file first and the command second:
 
-The script refuses `share`, which uploads the scene to excalidraw.com, and any
-export to `.excalidraw.md`. Do not look for a way around either. If the user
-wants a link or the Obsidian format, tell them and let them do it.
+```sh
+excalidraw <file>.excalidraw <command> [args]
+```
+
+The file is the drawing. A command that changes the drawing saves it back to the
+file; a file that does not exist yet starts empty. Nothing else is kept between
+calls, so there is nothing to start, stop or clean up.
+
+`excalidraw help` lists the commands, and `excalidraw help <command>` explains
+one. Results come back as JSON on stdout, except `describe`, which is text.
 
 ## Drawing a diagram
 
 1. **Plan the layout before writing any JSON.** Decide what the boxes are, how
    they group, and which direction the flow reads. Sketch the coordinates:
    tiers 100 px apart, siblings at least 50 px apart.
-2. **Start clean:** `excalidraw clear --yes`. The canvas outlives your session,
-   so it may hold someone else's last drawing.
-3. **Add the shapes and arrows in one call**, as a JSON array on stdin:
+2. **Add the shapes and arrows in one call**, as a JSON array on stdin:
 
    ```sh
-   excalidraw add <<'EOF'
+   excalidraw release_flow.excalidraw add <<'EOF'
    [
      {"id": "source", "type": "rectangle", "x": 0, "y": 0, "width": 180, "height": 60, "text": "Source"},
      {"id": "sink", "type": "rectangle", "x": 300, "y": 0, "width": 180, "height": 60, "text": "Sink"},
@@ -57,20 +60,16 @@ wants a link or the Obsidian format, tell them and let them do it.
    EOF
    ```
 
-4. **Look at it.** `excalidraw screenshot` writes a PNG to a temporary file and
-   prints its path; open that image. `excalidraw describe` lists every element
+3. **Look at it.** `excalidraw <file> screenshot --out <somewhere temporary>.png`
+   writes an image; open it. `excalidraw <file> describe` lists every element
    with its id, position and label, which is what you need to change one.
-5. **Fix what you see, then look again.** Change one element with
-   `excalidraw update <id> --set '{"width": 240}'`, or several at once with
-   `excalidraw apply`. Repeat until the checklist below passes.
-6. **Export:** `excalidraw export --out <path>.excalidraw`.
-7. **Stop the canvas:** `excalidraw stop`.
+4. **Fix what you see, then look again.** Change one element with
+   `excalidraw <file> update <id> --set '{"width": 240}'`, or several at once
+   with `excalidraw <file> apply`. Repeat until the checklist below passes.
 
-To change an existing diagram, start with
-`excalidraw import <file>.excalidraw --replace` instead of `clear`, then
-continue from step 4 and export over the same file.
+To change an existing diagram, start at step 3 with its file.
 
-## Before you export
+## Before you call it done
 
 Check the screenshot, not the JSON:
 
@@ -99,12 +98,10 @@ Check the screenshot, not the JSON:
 
 ## When something fails
 
-- **Exit code 3, canvas unreachable:** usually another program holds the port.
-  Set `EXCALIDRAW_PORT` to a free one and retry.
-- **Exit code 4, browser required:** only `mermaid` needs an open browser tab.
-  Draw the elements directly instead.
 - **`excalidraw: refused`:** the script will not do that. Read the reason and
-  tell the user rather than trying another route.
+  tell the user rather than trying another way to do it.
+- **Any other error:** the file is unchanged, because a failed command saves
+  nothing. Read the message, fix the input and run the command again.
 
 The engine is
 [mcp-excalidraw-server](https://github.com/yctimlin/mcp_excalidraw), at the
