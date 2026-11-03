@@ -46,7 +46,7 @@ OPENCODE_VERSION = "1.18.25"
 # One allowance for every agent run. A run is an LLM driving tools, so its duration
 # swings with the tool path it picks: tests that take ~60s locally have twice blown
 # a 300s cap on a CI runner. A genuinely stuck run is caught by the job timeout.
-AGENT_RUN_TIMEOUT = 600
+AGENT_RUN_TIMEOUT = 120
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -100,11 +100,15 @@ class OpencodeTimeoutError(AssertionError):
     """An `opencode run` that outlived its allowance, carrying its partial transcript."""
 
 
+def _tail(text: str, lines: int = 60) -> str:
+    return "\n".join(text.strip().splitlines()[-lines:]) or "(empty)"
+
+
 def _timeout_report(partial: OpencodeResult, timeout: int) -> str:
     return (
         f"opencode run exceeded {timeout}s and was killed.\n"
         f"--- assistant transcript so far ---\n{partial.text.strip() or '(none)'}\n"
-        f"--- stderr ---\n{partial.stderr.strip() or '(empty)'}"
+        f"--- opencode log (last 60 lines) ---\n{_tail(partial.stderr)}"
     )
 
 
@@ -175,7 +179,7 @@ class DisposableAgent:
         # that read `PWD` should see the sandbox rather than nothing at all.
         env = {**self.env, "PWD": str(workdir)}
         proc = subprocess.Popen(
-            [str(self.opencode_bin), "run", "--format", "json", message],
+            [str(self.opencode_bin), "run", "--print-logs", "--log-level", "INFO", "--format", "json", message],
             env=env,
             cwd=workdir,
             stdin=subprocess.DEVNULL,
