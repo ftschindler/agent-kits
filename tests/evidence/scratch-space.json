@@ -1,0 +1,46 @@
+{
+  "files": [
+    {
+      "path": "rules/scratch-space.md",
+      "sha256": "d066c96a29dbc022a855b303e7b6bd993e6b332a145baa068bc592df7f50243b"
+    }
+  ],
+  "kit": "scratch-space",
+  "outcome": "pass",
+  "recorded": {
+    "at": "2026-11-03T11:53:06Z",
+    "by": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>",
+    "model": "github-copilot/claude-sonnet-5",
+    "opencode_version": "1.19.4",
+    "platform": "linux"
+  },
+  "runs": [
+    {
+      "assertions": [
+        {
+          "kind": "contains_all",
+          "name": "the directory comes from mktemp",
+          "outcome": "pass",
+          "seen": "all present",
+          "values": [
+            "mktemp -d",
+            "xxxxxx"
+          ]
+        },
+        {
+          "kind": "contains_none",
+          "name": "it does not pick a fixed path",
+          "outcome": "pass",
+          "seen": "none present",
+          "values": [
+            "mkdir /tmp/",
+            "mkdir -p /tmp/"
+          ]
+        }
+      ],
+      "prompt": "I want to clone a repository somewhere temporary to try something out. Which shell command creates the directory for it? Reply with the command only.",
+      "reply": "mktemp -d \"/tmp/opencode/agent-kits-pr11-XXXXXX\""
+    }
+  ],
+  "schema_version": 1
+}

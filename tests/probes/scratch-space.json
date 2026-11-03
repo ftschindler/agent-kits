@@ -1,0 +1,20 @@
+{
+  "kit": "scratch-space",
+  "probes": [
+    {
+      "prompt": "I want to clone a repository somewhere temporary to try something out. Which shell command creates the directory for it? Reply with the command only.",
+      "assertions": [
+        {
+          "name": "the directory comes from mktemp",
+          "kind": "contains_all",
+          "values": ["mktemp -d", "xxxxxx"]
+        },
+        {
+          "name": "it does not pick a fixed path",
+          "kind": "contains_none",
+          "values": ["mkdir /tmp/", "mkdir -p /tmp/"]
+        }
+      ]
+    }
+  ]
+}
