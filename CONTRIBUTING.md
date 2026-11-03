@@ -5,6 +5,8 @@
 - [uv](https://docs.astral.sh/uv/), which provides `uv` and `uvx`
 - [Node.js](https://nodejs.org) 24+, which provides `node`, `npm` and `npx`
 - `git`
+- [opencode](https://opencode.ai), logged in to a provider, to record evidence
+  for a kit you change
 
 [make](https://en.wikipedia.org/wiki/Make_(software)) is an optional
 convenience. Every target is a single `uv run` line, precisely so that the
@@ -92,13 +94,15 @@ anywhere.
 
 ## Tests
 
-Three layers, each one `make` target and one CI job:
+Two offline layers, each one `make` target and one CI job, and a third that runs
+on your machine:
 
 ```sh
-make test_conformance   # every kit is shaped the way akit discovers one
+make test_conformance   # every kit is shaped the way akit discovers one,
+                        # and its evidence still describes it
 make test_scripts       # the Python under .scripts/ and inside the skills
-make test_agent         # install the kits into a real agent and talk to it
-make test               # all three
+make test               # both
+make record_evidence KIT=<name>   # ask a real assistant, write the evidence
 ```
 
 **Conformance** reads what is committed: frontmatter, names, depth. It is the
@@ -110,31 +114,51 @@ guard exercised only against a conformant repository passes just as happily once
 it has stopped checking anything, so the tests that matter here are the ones
 asserting a malformed kit is *caught*.
 
-**Agent** is end to end: it builds a throwaway
-[opencode](https://opencode.ai) in a redirected `HOME`, installs the kits into it
-the way a subscriber would, sends it a message and reads the reply. It needs the
-network and a few minutes, and it is the only layer that can tell you an
-instruction is unfollowable. No API key: the pinned opencode's default model is
-free to use.
+### Evidence: the layer that talks to an assistant
 
-When one fails, the agent is kept and the command to enter its world is printed
-with the failure. `make agent` builds one to poke at by hand.
+Both layers above read text. Neither can tell you an instruction is one a model
+will not follow, which is the failure a kit actually has: a skill that is
+discovered, opened and then ignored passes every check in this repository.
 
-### Testing a kit you have written
+This repository used to answer that by building a throwaway assistant in CI on
+opencode's free models. From GitHub's runners those models are out of quota, and
+opencode waits on the error instead of exiting, so every run hung until the job
+timed out ([#12](https://github.com/ftschindler/agent-kits/issues/12)). So the
+run now happens on your own machine, against the assistant you have already
+authenticated, and what CI sees is the recording.
 
-A skill test asserts behaviour, not wording. Give the skill an instruction with
-an observable consequence, ask the agent something that should trigger it, and
-check the transcript:
-
-```python
-result = kit_agent.run("Revise this: our powerful tool makes testing effortless.")
-assert "powerful" not in result.text.lower()
+```sh
+make record_evidence KIT=writing RECORD_ARGS="--model github-copilot/claude-sonnet-5"
 ```
 
-Keep the trigger mundane. An earlier test in the sibling repository asked an
-agent to "report the canary token", which reads as an attempt to extract a
-secret: the model declined, and the test measured safety training rather than
-skill discovery.
+That asks the questions in `tests/probes/<kit>.json` of a disposable agent
+holding only that kit, checks each answer against the assertions beside the
+question, and writes the prompt, the scrubbed reply and the outcomes into
+`tests/evidence/<kit>.json`. The agent is a temp HOME with your opencode
+credentials copied in and nothing else, so the reply is a reaction to the kit
+rather than to whatever else you have installed.
+
+**A probe asserts on substrings, not on quality.** `contains_none`,
+`contains_all` and `contains_any`, each with a name saying what it is for. That
+is blunt on purpose: it catches the kit being ignored, which is the failure
+worth automating, and leaves judgement to review.
+
+**Keep the trigger mundane.** An earlier probe asked an agent to "report the
+canary token", which reads as an attempt to extract a secret: the model
+declined, and the probe measured safety training rather than skill discovery.
+
+**A failing recording is committable.** A kit that does not work is better
+described than hidden, so `outcome: "fail"` is written out and the conformance
+test then fails on it by name.
+
+`.scripts/check_evidence.py` is the offline half, and runs in CI and at commit
+time. It cannot tell you the run happened; it tells you the recording still
+describes what is committed. Every file of the kit is hashed, and the *set* of
+files is compared too, so adding a reference without re-recording is caught as
+well: a hash-only check would miss exactly the content a skill loads when it
+matters.
+
+So editing a kit means re-recording it. The hook will say so.
 
 ## The guards
 
@@ -145,10 +169,12 @@ Each hook is pinned to a frozen SHA and bumped by Dependabot as an explicit diff
 Auto-fixers are ordered so general text hygiene runs last and cannot re-dirty a
 content formatter's output.
 
-Three of them are ours:
+Four of them are ours:
 
 - **kit-layout** - the conformance rules above, at commit time rather than
   review time.
+- **kit-evidence** - the evidence rules above, so a kit edited after its
+  recording is caught before the commit lands rather than in review.
 - **support-script-tests** - the `scripts` layer, when a guard or a test changes.
 - **no-symlinks** - a symlink is committed as a blob holding its target path, and
   a Windows clone without developer mode writes that path out as an ordinary text

@@ -28,11 +28,11 @@ subscribed to it. Clone it, copy a directory out of it by hand, or point
 ```sh
 make bootstrap   # install the pre-commit hooks into this clone
 make check       # the full guard suite, which is what CI runs
-make test        # every test layer
+make test        # the offline test layers
 ```
 
-[CONTRIBUTING.md](CONTRIBUTING.md) covers authoring a kit, the three test layers
-and what each guard is for.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers authoring a kit, the test layers, recording
+evidence for a kit, and what each guard is for.
 
 ## Licence
 

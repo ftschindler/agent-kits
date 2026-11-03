@@ -1,0 +1,75 @@
+{
+  "files": [
+    {
+      "path": "skills/writing/SKILL.md",
+      "sha256": "06d84dc15f16c88dbcd4b624648ba00d59ae7a18a1eaafb933d6bf4a93c3b3a1"
+    },
+    {
+      "path": "skills/writing/references/concreteness.md",
+      "sha256": "47103ba99cd27ccef172dc284b93d2fff5500163a031097f185e1e1eb3c81ad1"
+    },
+    {
+      "path": "skills/writing/references/document-shape.md",
+      "sha256": "5882a0721498f5ccaaee18d3a1c6d54be70f091374c09226955b00341918bfc5"
+    },
+    {
+      "path": "skills/writing/references/one-definitional-home.md",
+      "sha256": "637aae7d27c3161972f9d54e5e627b724fd1a28e08dfa6ca168b9a9ea8983590"
+    },
+    {
+      "path": "skills/writing/references/pace.md",
+      "sha256": "234b20b16693cde7f5ba27d0077de67413a446bf0e5b115c84270c02b712f063"
+    },
+    {
+      "path": "skills/writing/references/voice.md",
+      "sha256": "44062110488f28ab1d66177f1a307aa59c448f4eec3b312415b80e7907052481"
+    },
+    {
+      "path": "rules/writing.md",
+      "sha256": "a8475eb3372ee10e4d55a388b0820067c11701af574153a2e88aadcdd0aae1ec"
+    }
+  ],
+  "kit": "writing",
+  "outcome": "pass",
+  "recorded": {
+    "at": "2026-11-03T11:44:14Z",
+    "by": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>",
+    "model": "github-copilot/claude-sonnet-5",
+    "opencode_version": "1.19.4",
+    "platform": "linux"
+  },
+  "runs": [
+    {
+      "assertions": [
+        {
+          "kind": "contains_none",
+          "name": "the words the skill bans are gone",
+          "outcome": "pass",
+          "seen": "none present",
+          "values": [
+            "powerful",
+            "robust",
+            "seamless",
+            "effortless",
+            "cutting-edge",
+            "testament to",
+            "in no time"
+          ]
+        },
+        {
+          "kind": "contains_all",
+          "name": "it still talks about the tool and the pipelines",
+          "outcome": "pass",
+          "seen": "all present",
+          "values": [
+            "tool",
+            "pipeline"
+          ]
+        }
+      ],
+      "prompt": "Revise the following so it follows this project's house writing style. Reply with the revised text only.\n\nOur powerful and robust new tool delivers a seamless, effortless experience. It is a testament to the cutting-edge engineering of our team, and it will ensure your pipelines are green in no time!",
+      "reply": "Our new tool runs your pipelines and reports pass or fail. The team built it to replace the previous setup; we haven't yet measured how much faster it is."
+    }
+  ],
+  "schema_version": 1
+}

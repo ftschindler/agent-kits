@@ -16,8 +16,8 @@ guard-%:
 		exit 1; \
 	}
 
-## Run every test layer (conformance, support scripts, and the disposable agent)
-test: test_conformance test_scripts test_agent
+## Run both offline test layers (conformance and support scripts)
+test: test_conformance test_scripts
 
 # Each layer is one call into .scripts/run-tests.py, which composes the `uvx`
 # invocation in Python. Doing that here in `$(shell ...)` would make `make` and a
@@ -32,20 +32,17 @@ test_conformance: | guard-uv
 test_scripts: | guard-uv
 	uv run .scripts/run-tests.py scripts
 
-## Test the kits by installing them into a real agent and talking to it (slow, needs network)
-test_agent: | guard-node guard-npm guard-npx guard-uv
-	uv run .scripts/run-tests.py agent
+## Record evidence for one kit against your own assistant (KIT=<name>)
+record_evidence: | guard-uv
+	@test -n "$(KIT)" || { printf 'usage: make record_evidence KIT=<name>\n' >&2; exit 1; }
+	uv run --script .scripts/record_evidence.py $(KIT) $(RECORD_ARGS)
 
 ## Run the full pre-commit guard suite against all files
 check: | guard-uvx
 	uvx prek run --all-files
 
-## Build a disposable agent with these kits installed and drop into a shell
-agent: | guard-uv
-	uv run .scripts/disposable-agent.py
-
 ## Install the pre-commit hooks into this clone
 bootstrap: | guard-git guard-uvx
 	uvx prek install
 
-.PHONY: help test test_conformance test_scripts test_agent check agent bootstrap
+.PHONY: help test test_conformance test_scripts record_evidence check bootstrap

@@ -1,0 +1,28 @@
+{
+  "kit": "writing",
+  "probes": [
+    {
+      "prompt": "Revise the following so it follows this project's house writing style. Reply with the revised text only.\n\nOur powerful and robust new tool delivers a seamless, effortless experience. It is a testament to the cutting-edge engineering of our team, and it will ensure your pipelines are green in no time!",
+      "assertions": [
+        {
+          "name": "the words the skill bans are gone",
+          "kind": "contains_none",
+          "values": [
+            "powerful",
+            "robust",
+            "seamless",
+            "effortless",
+            "cutting-edge",
+            "testament to",
+            "in no time"
+          ]
+        },
+        {
+          "name": "it still talks about the tool and the pipelines",
+          "kind": "contains_all",
+          "values": ["tool", "pipeline"]
+        }
+      ]
+    }
+  ]
+}

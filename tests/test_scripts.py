@@ -8,11 +8,16 @@ passes just as happily once it has stopped checking anything.
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+from evidence_check import SCHEMA_VERSION as EVIDENCE_SCHEMA_VERSION
+from evidence_check import check_all as evidence_check_all
+from evidence_check import kit_files
+from evidence_check import sha256_of as evidence_sha256
 from git_environment import outside_any_repository
 from kit_layout import REPO_ROOT, check_all, read_frontmatter
 
@@ -166,3 +171,83 @@ def test_the_mailmap_guard_survives_a_repository_with_no_commits(tmp_path: Path)
         env=outside_any_repository(),
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+# --- the evidence guard -------------------------------------------------
+
+
+def evidence(root: Path, name: str, files: dict[str, Path], *, outcome: str = "pass") -> Path:
+    """Write an evidence file for `name` covering `files`, hashed as they are now."""
+    document = {
+        "schema_version": EVIDENCE_SCHEMA_VERSION,
+        "kit": name,
+        "files": [
+            {"path": path.relative_to(root).as_posix(), "sha256": evidence_sha256(path)}
+            for path in sorted(files.values())
+        ],
+        "recorded": {"at": "2026-01-01T00:00:00Z", "by": "A Contributor <a@example.com>"},
+        "runs": [{"prompt": "...", "reply": "...", "assertions": []}],
+        "outcome": outcome,
+    }
+    return write(root / "tests" / "evidence" / f"{name}.json", json.dumps(document, indent=2) + "\n")
+
+
+def recorded_kit(root: Path, name: str = "writing", **kwargs) -> dict[str, Path]:
+    """A conformant skill and rule, with evidence covering both."""
+    files = {
+        "skill": skill(root, name, name=name),
+        "rule": rule(root, f"{name}.md", "---\ndescription: House prose style.\n---\n\n# Writing\n"),
+    }
+    evidence(root, name, files, **kwargs)
+    return files
+
+
+def test_a_kit_with_matching_evidence_passes(tmp_path: Path):
+    recorded_kit(tmp_path)
+    assert evidence_check_all(tmp_path) == []
+
+
+def test_a_kit_with_no_evidence_at_all_is_caught(tmp_path: Path):
+    skill(tmp_path, "writing", name="writing")
+    problems = evidence_check_all(tmp_path)
+    assert any("no evidence" in problem for problem in problems)
+
+
+def test_a_kit_edited_after_recording_is_caught(tmp_path: Path):
+    files = recorded_kit(tmp_path)
+    files["skill"].write_text("---\nname: writing\ndescription: Changed.\n---\n", encoding="utf-8")
+    problems = evidence_check_all(tmp_path)
+    assert any("has changed since the evidence was recorded" in problem for problem in problems)
+
+
+def test_a_reference_added_after_recording_is_caught(tmp_path: Path):
+    """The failure a hash-only check misses: new bytes nobody has tried."""
+    recorded_kit(tmp_path)
+    write(tmp_path / "skills" / "writing" / "references" / "pace.md", "# Pace\n")
+    problems = evidence_check_all(tmp_path)
+    assert any("not covered by the evidence" in problem for problem in problems)
+
+
+def test_evidence_covering_a_file_that_is_gone_is_caught(tmp_path: Path):
+    files = recorded_kit(tmp_path)
+    files["rule"].unlink()
+    problems = evidence_check_all(tmp_path)
+    assert any("no longer part of the kit" in problem for problem in problems)
+
+
+def test_a_recorded_failure_is_committable_and_still_fails_the_check(tmp_path: Path):
+    recorded_kit(tmp_path, outcome="fail")
+    problems = evidence_check_all(tmp_path)
+    assert any("recorded outcome is 'fail'" in problem for problem in problems)
+
+
+def test_a_skill_and_a_rule_of_the_same_name_are_one_kit(tmp_path: Path):
+    files = recorded_kit(tmp_path)
+    assert set(kit_files(tmp_path)) == {"writing"}
+    assert kit_files(tmp_path)["writing"] == sorted(path.relative_to(tmp_path).as_posix() for path in files.values())
+
+
+def test_unreadable_evidence_is_reported_rather_than_raised(tmp_path: Path):
+    recorded_kit(tmp_path)
+    (tmp_path / "tests" / "evidence" / "writing.json").write_text("{not json", encoding="utf-8")
+    assert any("not valid JSON" in problem for problem in evidence_check_all(tmp_path))
