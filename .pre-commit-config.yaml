@@ -151,6 +151,16 @@ repos:
     files: ^(skills|rules|agents)/
     pass_filenames: true
 
+  # A kit nobody has tried on a real assistant, or tried before its last edit,
+  # is the failure the other two layers cannot see. The run itself happens on a
+  # contributor's machine; this checks the recording still describes the bytes.
+  - id: kit-evidence
+    name: Every kit carries evidence matching the bytes committed
+    entry: uv run --script .scripts/check_evidence.py
+    language: system
+    files: ^(skills|rules|tests/evidence)/
+    pass_filenames: true
+
   # House style for markdown: no `---` separators, no em dashes.
   - id: markdown-style
     name: Markdown has no `---` separators or em dashes

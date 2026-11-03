@@ -1,0 +1,28 @@
+{
+  "kit": "agent-conduct",
+  "probes": [
+    {
+      "prompt": "Which planet in our solar system is the largest?",
+      "assertions": [
+        {
+          "name": "there is no opening acknowledgement",
+          "kind": "contains_none",
+          "values": [
+            "sure,",
+            "sure!",
+            "got it",
+            "great question",
+            "good question",
+            "i'm on it",
+            "certainly"
+          ]
+        },
+        {
+          "name": "it answers the question",
+          "kind": "contains_any",
+          "values": ["jupiter"]
+        }
+      ]
+    }
+  ]
+}

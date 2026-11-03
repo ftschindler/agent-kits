@@ -1,0 +1,50 @@
+{
+  "files": [
+    {
+      "path": "rules/agent-conduct.md",
+      "sha256": "fb3da584be3c395bf4251923bcf425554769b3fb2fb0e70f7f9954258f09de15"
+    }
+  ],
+  "kit": "agent-conduct",
+  "outcome": "pass",
+  "recorded": {
+    "at": "2026-11-03T11:44:18Z",
+    "by": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>",
+    "model": "github-copilot/claude-sonnet-5",
+    "opencode_version": "1.19.4",
+    "platform": "linux"
+  },
+  "runs": [
+    {
+      "assertions": [
+        {
+          "kind": "contains_none",
+          "name": "there is no opening acknowledgement",
+          "outcome": "pass",
+          "seen": "none present",
+          "values": [
+            "sure,",
+            "sure!",
+            "got it",
+            "great question",
+            "good question",
+            "i'm on it",
+            "certainly"
+          ]
+        },
+        {
+          "kind": "contains_any",
+          "name": "it answers the question",
+          "outcome": "pass",
+          "seen": "present: jupiter",
+          "values": [
+            "jupiter"
+          ]
+        }
+      ],
+      "prompt": "Which planet in our solar system is the largest?",
+      "reply": "Jupiter."
+    }
+  ],
+  "schema_version": 1
+}

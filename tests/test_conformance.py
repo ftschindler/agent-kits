@@ -17,11 +17,14 @@ import sys
 from pathlib import Path
 
 import pytest
+from evidence_check import check_all as evidence_check_all
+from evidence_check import kit_files
 from kit_layout import REPO_ROOT, check_all, check_flat_kind, check_skills, frontmatter_block
 
 pytestmark = pytest.mark.conformance
 
 CHECK_KIT_LAYOUT = REPO_ROOT / ".scripts" / "check_kit_layout.py"
+CHECK_EVIDENCE = REPO_ROOT / ".scripts" / "check_evidence.py"
 
 
 def test_every_skill_is_discoverable_and_installs_under_its_own_name():
@@ -149,3 +152,31 @@ def test_every_reference_names_the_live_page_it_was_distilled_from():
         assert "https://ftschindler.github.io/knowledge/" in text, (
             f"{path.relative_to(REPO_ROOT)} does not link the page it digests"
         )
+
+
+def test_every_kit_carries_evidence_matching_the_bytes_committed():
+    """A kit nobody has tried, or tried before its last edit, is caught here.
+
+    This layer cannot tell you the run happened; it can only tell you the
+    recording still describes what is committed. The run itself is
+    `.scripts/record_evidence.py`, on a contributor's own machine.
+    """
+    assert evidence_check_all() == []
+
+
+def test_every_kit_has_probes_to_record_against():
+    """Probes are the questions; evidence is the answers. A kit needs both."""
+    kits = set(kit_files(REPO_ROOT))
+    probes = {path.stem for path in (REPO_ROOT / "tests" / "probes").glob("*.json")}
+    assert kits - probes == set(), "every kit needs tests/probes/<kit>.json"
+
+
+def test_the_evidence_checker_runs_as_a_command_and_reports_success():
+    result = subprocess.run(
+        [sys.executable, str(CHECK_EVIDENCE)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
