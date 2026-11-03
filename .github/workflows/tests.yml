@@ -123,6 +123,7 @@ jobs:
     - name: TEMP probe free models
       shell: bash
       run: |
+        set +e +o pipefail
         npm i -g opencode-ai@1.18.25 >/dev/null
         export HOME=$RUNNER_TEMP/h; mkdir -p $HOME/w; cd $HOME/w
         for m in big-pickle hy3-free mimo-v2.5-free muse-spark-1.2-contributor-free nemotron-3-ultra-free nemotron-3.5-lightning-free; do
