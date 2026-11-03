@@ -26,5 +26,3 @@ description: >-
   session may be using it, and deleting or re-cloning it destroys their work.
 - **Delete only what you created, when the task ends.** Leave every other
   directory alone, however abandoned it looks.
-- **Prefer `git worktree add <that directory> <branch>`** over a fresh clone when
-  a local clone of the repository already exists.
