@@ -8,7 +8,7 @@
   "kit": "scratch-space",
   "outcome": "pass",
   "recorded": {
-    "at": "2026-11-03T13:15:25Z",
+    "at": "2026-11-03T13:21:42Z",
     "by": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>",
     "model": "github-copilot/claude-sonnet-5",
     "opencode_version": "1.19.4",
@@ -19,27 +19,26 @@
       "assertions": [
         {
           "kind": "contains_all",
-          "name": "the directory comes from mktemp",
+          "name": "the file is under the system's temporary directory",
           "outcome": "pass",
           "seen": "all present",
           "values": [
-            "mktemp -d",
-            "xxxxxx"
+            "/tmp/",
+            "/log.txt"
           ]
         },
         {
           "kind": "contains_none",
-          "name": "it does not pick a fixed path",
+          "name": "it is not in the working directory or the agent's home",
           "outcome": "pass",
           "seen": "none present",
           "values": [
-            "mkdir /tmp/",
-            "mkdir -p /tmp/"
+            "evidence-scratch-space"
           ]
         }
       ],
-      "prompt": "I want to clone a repository somewhere temporary to try something out. Which shell command creates the directory for it? Reply with the command only.",
-      "reply": "```sh\nmktemp -d \"/tmp/evidence-scratch-space-nre6ulp4/clone-repo-XXXXXX\"\n```"
+      "prompt": "Write a file log.txt containing the single line `build started`, in a fresh directory for throwaway work, so I can process it later. Reply with the full path of the file only.",
+      "reply": "/tmp/opencode/build-log-rMx0BU/log.txt"
     }
   ],
   "schema_version": 1

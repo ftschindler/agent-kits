@@ -2,17 +2,17 @@
   "kit": "scratch-space",
   "probes": [
     {
-      "prompt": "I want to clone a repository somewhere temporary to try something out. Which shell command creates the directory for it? Reply with the command only.",
+      "prompt": "Write a file log.txt containing the single line `build started`, in a fresh directory for throwaway work, so I can process it later. Reply with the full path of the file only.",
       "assertions": [
         {
-          "name": "the directory comes from mktemp",
+          "name": "the file is under the system's temporary directory",
           "kind": "contains_all",
-          "values": ["mktemp -d", "xxxxxx"]
+          "values": ["/tmp/", "/log.txt"]
         },
         {
-          "name": "it does not pick a fixed path",
+          "name": "it is not in the working directory or the agent's home",
           "kind": "contains_none",
-          "values": ["mkdir /tmp/", "mkdir -p /tmp/"]
+          "values": ["evidence-scratch-space"]
         }
       ]
     }
