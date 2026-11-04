@@ -1,8 +1,8 @@
 """The excalidraw kit: its guard, its engine, and an agent that draws with it.
 
-The `scripts` tests check what the wrapper accepts and refuses, without
-installing anything. The `engine` tests install the pinned engine for real, which
-needs the network, and drive it the way the skill tells an agent to. Whether an
+All of it is the `scripts` layer. The first half checks what the wrapper
+accepts and refuses, without installing anything. The second installs the pinned
+engine for real and drives it the way the skill tells an agent to. Whether an
 agent follows the skill is the probe in tests/probes/excalidraw.json, recorded
 on a contributor's machine.
 
@@ -204,7 +204,7 @@ def boxes(*names: str) -> str:
     return json.dumps(shapes + arrows)
 
 
-@pytest.mark.engine
+@pytest.mark.scripts
 def test_the_file_is_the_drawing_from_one_call_to_the_next(engine) -> None:
     """The workflow in SKILL.md, call by call, against the pinned engine."""
     added = engine("page_diagram.excalidraw", "add", stdin=boxes("Bundle", "Diagram"))
@@ -232,7 +232,7 @@ def test_the_file_is_the_drawing_from_one_call_to_the_next(engine) -> None:
     assert sorted(p.name for p in engine.work.iterdir()) == ["check.png", "offline.png", "page_diagram.excalidraw"]
 
 
-@pytest.mark.engine
+@pytest.mark.scripts
 def test_a_failed_command_leaves_the_file_untouched(engine) -> None:
     assert engine("kept.excalidraw", "add", stdin=boxes("Kept")).returncode == 0
     before = (engine.work / "kept.excalidraw").read_bytes()
@@ -240,7 +240,7 @@ def test_a_failed_command_leaves_the_file_untouched(engine) -> None:
     assert (engine.work / "kept.excalidraw").read_bytes() == before
 
 
-@pytest.mark.engine
+@pytest.mark.scripts
 def test_two_files_drawn_at_once_stay_apart(engine) -> None:
     """Every call has its own canvas, so concurrent sessions cannot mix their drawings."""
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -256,7 +256,7 @@ def test_two_files_drawn_at_once_stay_apart(engine) -> None:
         assert list(labels(scene).values()) == [name]
 
 
-@pytest.mark.engine
+@pytest.mark.scripts
 def test_the_engine_refuses_to_share(engine) -> None:
     result = engine("page.excalidraw", "share")
     assert result.returncode == 2
