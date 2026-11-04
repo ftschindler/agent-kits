@@ -141,15 +141,37 @@ def test_the_engine_is_pinned_exactly() -> None:
 # ---- the engine, driven as the skill says ------------------------------------
 
 
-@pytest.fixture
-def engine(tmp_path: Path):
-    """Run the script as an agent would, with its cache and state kept in `tmp_path`."""
+@pytest.fixture(scope="module")
+def engine_cache(tmp_path_factory: pytest.TempPathFactory) -> dict[str, str]:
+    """One engine install for the whole module, made before any test needs it.
+
+    Installing once is faster, and it keeps the concurrency test about what it
+    claims to test - two canvases staying apart - rather than two cold `npm ci`
+    runs racing for one cache, which hung a Windows runner.
+    """
+    root = tmp_path_factory.mktemp("engine")
     environ = {
         **os.environ,
-        "XDG_CACHE_HOME": str(tmp_path / "cache"),
-        "XDG_STATE_HOME": str(tmp_path / "state"),
-        "LOCALAPPDATA": str(tmp_path / "local"),
+        "XDG_CACHE_HOME": str(root / "cache"),
+        "XDG_STATE_HOME": str(root / "state"),
+        "LOCALAPPDATA": str(root / "local"),
     }
+    warmed = subprocess.run(
+        ["uv", "run", "--script", str(SCRIPT), "help", "add"],
+        env=environ,
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    assert warmed.returncode == 0, warmed.stderr
+    return environ
+
+
+@pytest.fixture
+def engine(tmp_path: Path, engine_cache: dict[str, str]):
+    """Run the script as an agent would, from a fresh working directory, on the shared engine."""
+    environ = engine_cache
     work = tmp_path / "work"
     work.mkdir()
 
