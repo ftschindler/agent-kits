@@ -1,0 +1,67 @@
+{
+  "files": [
+    {
+      "path": "skills/excalidraw/SKILL.md",
+      "sha256": "8cf8ca00a76a59ba7b5cfc654c5c688e2d11d3390e77e9ea00be9de5c4ff6dbb"
+    },
+    {
+      "path": "skills/excalidraw/scripts/engine/package-lock.json",
+      "sha256": "bc57093cd9decc74a2afb34af3f321a1ef63b01bef34b8d2826770555e00c877"
+    },
+    {
+      "path": "skills/excalidraw/scripts/engine/package.json",
+      "sha256": "6883f079a4c73618187e1dcdfa8980b19ecde3b690fb390b5ad04811ac59d273"
+    },
+    {
+      "path": "skills/excalidraw/scripts/excalidraw.py",
+      "sha256": "7541312a5231b98e3b2b0ef391454cc5dbea8d872c734eeed5f7071056174f93"
+    }
+  ],
+  "kit": "excalidraw",
+  "outcome": "pass",
+  "recorded": {
+    "at": "2026-11-04T12:57:33Z",
+    "by": "Felix Schindler <107669806+ftschindler@users.noreply.github.com>",
+    "model": "github-copilot/claude-sonnet-5",
+    "opencode_version": "1.19.4",
+    "platform": "linux"
+  },
+  "runs": [
+    {
+      "assertions": [
+        {
+          "kind": "contains_all",
+          "name": "the three labelled boxes are in the file",
+          "outcome": "pass",
+          "seen": "all present",
+          "values": [
+            "plan",
+            "draw",
+            "check"
+          ]
+        },
+        {
+          "kind": "contains_any",
+          "name": "the boxes are connected",
+          "outcome": "pass",
+          "seen": "present: arrow",
+          "values": [
+            "arrow"
+          ]
+        },
+        {
+          "kind": "contains_none",
+          "name": "it is plain .excalidraw, not the Obsidian wrapper",
+          "outcome": "pass",
+          "seen": "none present",
+          "values": [
+            ".excalidraw.md"
+          ]
+        }
+      ],
+      "prompt": "Draw a small Excalidraw diagram with three boxes labelled Plan, Draw and Check, connected by arrows in that order, and save it as process.excalidraw in the current directory. Then reply with the output of the skill's describe command for that file, verbatim.",
+      "reply": "Let me verify with a screenshot before finalizing.\nLooks good. Now cleaning up the screenshot and getting the describe output.\nDiagram saved to `process.excalidraw` with three boxes (Plan \u2192 Draw \u2192 Check) connected by arrows. Here's the describe output verbatim:\n\n```\n## Canvas Description\nTotal elements: 8\nTypes: rectangle(3), arrow(2), text(3)\nBounding box: (0, 0) to (640, 60) = 640x60\n\n### Elements (top-to-bottom, left-to-right):\n  [plan] rectangle | at (0, 0) | size 160x60 | stroke: #1e1e1e\n  [plan-label] text | at (10, 15) | size 140x30 | text: \"Plan\" | stroke: #1e1e1e\n  [mw24fvxnx38ginpkx2j] arrow | at (168, 30) | stroke: #1e1e1e\n  [draw] rectangle | at (240, 0) | size 160x60 | stroke: #1e1e1e\n  [draw-label] text | at (250, 15) | size 140x30 | text: \"Draw\" | stroke: #1e1e1e\n  [mw24fvxn7qbhrhk3iw3] arrow | at (408, 30) | stroke: #1e1e1e\n  [check] rectangle | at (480, 0) | size 160x60 | stroke: #1e1e1e\n  [check-label] text | at (490, 15) | size 140x30 | text: \"Check\" | stroke: #1e1e1e\n\n### Connections:\n  plan --> draw (arrow: mw24fvxnx38ginpkx2j)\n  draw --> check (arrow: mw24fvxn7qbhrhk3iw3)\n```"
+    }
+  ],
+  "schema_version": 1
+}

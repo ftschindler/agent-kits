@@ -104,20 +104,25 @@ worked example, and Dependabot watches its lock file.
 
 ## Tests
 
-Two offline layers, each one `make` target and one CI job, and a third that runs
-on your machine:
+Two offline layers and one that needs the network, each one `make` target and
+one CI job, and evidence that is recorded on your machine:
 
 ```sh
 make test_conformance   # every kit is shaped the way akit discovers one,
                         # and its evidence still describes it
 make test_scripts       # the Python under .scripts/ and inside the skills
-make test               # both
+make test_engine        # the excalidraw skill's pinned engine, end to end
+make test               # all three
 make record_evidence KIT=<name>   # ask a real assistant, write the evidence
 ```
 
 **Conformance** reads what is committed: frontmatter, names, depth. It is the
 layer that catches a skill renamed in one place and not the other, which is
 otherwise a part that silently does not exist on somebody else's machine.
+
+**Engine** installs the excalidraw skill's pinned Node engine and drives it
+through the script, the way the skill tells an agent to. It needs the network the
+first time, which is why it is not part of the scripts layer.
 
 **Scripts** unit-tests the guards against crafted trees in a temp directory. A
 guard exercised only against a conformant repository passes just as happily once

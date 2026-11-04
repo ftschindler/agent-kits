@@ -1,9 +1,10 @@
 """The excalidraw kit: its guard, its engine, and an agent that draws with it.
 
-Three layers, as everywhere here. The `scripts` tests check what the wrapper
-accepts and refuses, without installing anything. The `agent` layer installs the
-pinned engine for real and drives it the way the skill tells an agent to, and
-then hands the skill to an agent and checks the file it leaves behind.
+The `scripts` tests check what the wrapper accepts and refuses, without
+installing anything. The `engine` tests install the pinned engine for real, which
+needs the network, and drive it the way the skill tells an agent to. Whether an
+agent follows the skill is the probe in tests/probes/excalidraw.json, recorded
+on a contributor's machine.
 
 What is asserted about a drawing is its structure - the labels exist and sit
 inside their shapes - never its looks. Looks are the model's judgement, and a
@@ -21,7 +22,6 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
-from disposable_agent import DisposableAgent
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = REPO_ROOT / "skills" / "excalidraw" / "scripts" / "excalidraw.py"
@@ -182,7 +182,7 @@ def boxes(*names: str) -> str:
     return json.dumps(shapes + arrows)
 
 
-@pytest.mark.agent
+@pytest.mark.engine
 def test_the_file_is_the_drawing_from_one_call_to_the_next(engine) -> None:
     """The workflow in SKILL.md, call by call, against the pinned engine."""
     added = engine("page_diagram.excalidraw", "add", stdin=boxes("Bundle", "Diagram"))
@@ -210,7 +210,7 @@ def test_the_file_is_the_drawing_from_one_call_to_the_next(engine) -> None:
     assert sorted(p.name for p in engine.work.iterdir()) == ["check.png", "offline.png", "page_diagram.excalidraw"]
 
 
-@pytest.mark.agent
+@pytest.mark.engine
 def test_a_failed_command_leaves_the_file_untouched(engine) -> None:
     assert engine("kept.excalidraw", "add", stdin=boxes("Kept")).returncode == 0
     before = (engine.work / "kept.excalidraw").read_bytes()
@@ -218,7 +218,7 @@ def test_a_failed_command_leaves_the_file_untouched(engine) -> None:
     assert (engine.work / "kept.excalidraw").read_bytes() == before
 
 
-@pytest.mark.agent
+@pytest.mark.engine
 def test_two_files_drawn_at_once_stay_apart(engine) -> None:
     """Every call has its own canvas, so concurrent sessions cannot mix their drawings."""
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -234,35 +234,8 @@ def test_two_files_drawn_at_once_stay_apart(engine) -> None:
         assert list(labels(scene).values()) == [name]
 
 
-@pytest.mark.agent
+@pytest.mark.engine
 def test_the_engine_refuses_to_share(engine) -> None:
     result = engine("page.excalidraw", "share")
     assert result.returncode == 2
     assert "refused" in result.stderr
-
-
-# ---- an agent, given the skill -----------------------------------------------
-
-
-@pytest.mark.agent
-def test_an_agent_draws_a_diagram_into_a_file(kit_agent: DisposableAgent) -> None:
-    """Asked for a sketch, an agent with the skill leaves a real `.excalidraw` file behind."""
-    result = kit_agent.run(
-        "Draw a small Excalidraw diagram with three boxes labelled Plan, Draw and Check, "
-        "connected by arrows in that order, and save it as process.excalidraw in the "
-        "current directory. Reply with the file name only."
-    )
-
-    assert result.returncode == 0, f"opencode exited {result.returncode}\n{result.stderr}"
-    drawn = kit_agent.work / "process.excalidraw"
-    assert drawn.is_file(), f"no process.excalidraw was written\n--- transcript ---\n{result.text.strip()}"
-
-    scene = json.loads(drawn.read_text(encoding="utf-8"))
-    assert scene["type"] == "excalidraw"
-    found = {
-        element["text"].strip().lower()
-        for element in scene["elements"]
-        if element.get("type") == "text" and not element.get("isDeleted")
-    }
-    assert {"plan", "draw", "check"} <= found, f"labels in the file: {sorted(found)}"
-    assert any(e.get("type") == "arrow" and not e.get("isDeleted") for e in scene["elements"])

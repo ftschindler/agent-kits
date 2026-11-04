@@ -17,7 +17,7 @@ guard-%:
 	}
 
 ## Run both offline test layers (conformance and support scripts)
-test: test_conformance test_scripts
+test: test_conformance test_scripts test_engine
 
 # Each layer is one call into .scripts/run-tests.py, which composes the `uvx`
 # invocation in Python. Doing that here in `$(shell ...)` would make `make` and a
@@ -32,6 +32,10 @@ test_conformance: | guard-uv
 test_scripts: | guard-uv
 	uv run .scripts/run-tests.py scripts
 
+## Drive the excalidraw skill's pinned engine end to end (needs network on first run)
+test_engine: | guard-uv
+	uv run .scripts/run-tests.py engine
+
 ## Record evidence for one kit against your own assistant (KIT=<name>)
 record_evidence: | guard-uv
 	@test -n "$(KIT)" || { printf 'usage: make record_evidence KIT=<name>\n' >&2; exit 1; }
@@ -45,4 +49,4 @@ check: | guard-uvx
 bootstrap: | guard-git guard-uvx
 	uvx prek install
 
-.PHONY: help test test_conformance test_scripts record_evidence check bootstrap
+.PHONY: help test test_conformance test_scripts test_engine record_evidence check bootstrap

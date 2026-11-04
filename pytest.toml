@@ -4,4 +4,5 @@ python_files = ["test_*.py"]
 markers = [
   "conformance: the repository is shaped the way akit discovers a kit (fast, offline)",
   "scripts: unit tests for the python under .scripts/ and inside the skills (fast, offline)",
+  "engine: drive the excalidraw skill's pinned engine end to end (needs network for the first install)",
 ]
