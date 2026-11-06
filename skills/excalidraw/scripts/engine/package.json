@@ -1,0 +1,9 @@
+{
+  "name": "excalidraw-kit-engine",
+  "private": true,
+  "description": "The pinned drawing engine behind the excalidraw skill. Installed by scripts/excalidraw.py with `npm ci`, never by hand.",
+  "license": "MIT",
+  "dependencies": {
+    "mcp-excalidraw-server": "2.1.2"
+  }
+}

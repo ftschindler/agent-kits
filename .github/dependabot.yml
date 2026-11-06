@@ -16,3 +16,12 @@ updates:
     interval: weekly
   commit-message:
     prefix: "chore(actions)"
+
+# Bump the drawing engine the excalidraw skill installs. The lock file is the
+# pin: scripts/excalidraw.py installs it with `npm ci` and caches by its hash.
+- package-ecosystem: npm
+  directory: /skills/excalidraw/scripts/engine
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: "chore(excalidraw)"

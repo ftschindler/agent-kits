@@ -72,7 +72,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-    timeout-minutes: 5
+    # A skill's script installs what its header declares, and the excalidraw
+    # engine is a few hundred MB from npm: about 4 minutes on a Windows runner,
+    # under 1 on Linux. Past 15 something is stuck, not slow.
+    timeout-minutes: 15
     steps:
 
     - name: Checkout

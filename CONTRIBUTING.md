@@ -92,9 +92,19 @@ files that get copied - and a subscriber then needs `uv` and nothing else.
 passes them to the test run, so a new dependency needs no second declaration
 anywhere.
 
+### Node beside a skill
+
+A skill that needs a Node tool still asks the subscriber for `uv` and nothing
+else. Its Python script declares `nodejs-wheel-binaries` in the PEP 723 header,
+which brings `node` and `npm` from PyPI, and installs the tool with `npm ci`
+from a `package.json` and `package-lock.json` committed beside it. The install
+goes into a cache directory named after the lock file's hash, so a bumped lock
+installs afresh. [excalidraw](skills/excalidraw/scripts/excalidraw.py) is the
+worked example, and Dependabot watches its lock file.
+
 ## Tests
 
-Two offline layers, each one `make` target and one CI job, and a third that runs
+Two layers, each one `make` target and one CI job, and evidence that is recorded
 on your machine:
 
 ```sh
@@ -109,8 +119,10 @@ make record_evidence KIT=<name>   # ask a real assistant, write the evidence
 layer that catches a skill renamed in one place and not the other, which is
 otherwise a part that silently does not exist on somebody else's machine.
 
-**Scripts** unit-tests the guards against crafted trees in a temp directory. A
-guard exercised only against a conformant repository passes just as happily once
+**Scripts** tests the Python, which installs whatever its PEP 723 header
+declares - for the excalidraw skill, the Node engine from npm. Neither layer
+calls an assistant; that is what evidence is for. It also unit-tests the guards
+against crafted trees in a temp directory. A guard exercised only against a conformant repository passes just as happily once
 it has stopped checking anything, so the tests that matter here are the ones
 asserting a malformed kit is *caught*.
 

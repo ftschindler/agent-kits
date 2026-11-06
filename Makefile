@@ -16,7 +16,7 @@ guard-%:
 		exit 1; \
 	}
 
-## Run both offline test layers (conformance and support scripts)
+## Run both test layers (conformance and support scripts)
 test: test_conformance test_scripts
 
 # Each layer is one call into .scripts/run-tests.py, which composes the `uvx`
@@ -28,7 +28,7 @@ test: test_conformance test_scripts
 test_conformance: | guard-uv
 	uv run .scripts/run-tests.py conformance
 
-## Test the Python under .scripts/ and inside the skills (fast, offline)
+## Test the Python under .scripts/ and inside the skills (installs what the scripts declare)
 test_scripts: | guard-uv
 	uv run .scripts/run-tests.py scripts
 

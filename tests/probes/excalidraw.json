@@ -1,0 +1,25 @@
+{
+  "kit": "excalidraw",
+  "probes": [
+    {
+      "prompt": "Draw a small Excalidraw diagram with three boxes labelled Plan, Draw and Check, connected by arrows in that order, and save it as process.excalidraw in the current directory. Then reply with the output of the skill's describe command for that file, verbatim.",
+      "assertions": [
+        {
+          "name": "the three labelled boxes are in the file",
+          "kind": "contains_all",
+          "values": ["plan", "draw", "check"]
+        },
+        {
+          "name": "the boxes are connected",
+          "kind": "contains_any",
+          "values": ["arrow"]
+        },
+        {
+          "name": "it is plain .excalidraw, not the Obsidian wrapper",
+          "kind": "contains_none",
+          "values": [".excalidraw.md"]
+        }
+      ]
+    }
+  ]
+}
